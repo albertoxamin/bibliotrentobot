@@ -1,0 +1,15 @@
+{
+  "name": "biblioteche-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "telegrafjs": "^0.1.3",
+    "request": "^2.85.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

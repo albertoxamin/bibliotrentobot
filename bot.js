@@ -37,10 +37,6 @@ bot.on('text', ctx =>{
     getBiblio(res => ctx.replyWithMarkdown(res));
 });
 
-// bot.command('biblio', ctx => {
-//     getBiblio(res => ctx.replyWithMarkdown(res));
-// });
-
 bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
     getBiblio(res => {
         md5sum.update(res);

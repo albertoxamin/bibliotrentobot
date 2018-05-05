@@ -4,10 +4,11 @@
   "description": "",
   "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node bot.js"
   },
   "dependencies": {
-    "telegrafjs": "^0.1.3",
+    "telegraf": "^3.21.0",
     "request": "^2.85.0"
   },
   "author": "Alberto Xamin",

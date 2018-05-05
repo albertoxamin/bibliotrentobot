@@ -1,15 +1,15 @@
 # bibliotrentobot
-[![](https://images.microbadger.com/badges/version/albertoxamin/{}.svg)](https://microbadger.com/images/albertoxamin/{})
-[![](https://images.microbadger.com/badges/image/albertoxamin/{}.svg)](https://microbadger.com/images/albertoxamin/{})
+[![](https://images.microbadger.com/badges/version/albertoxamin/bibliotrentobot.svg)](https://microbadger.com/images/albertoxamin/bibliotrentobot)
+[![](https://images.microbadger.com/badges/image/albertoxamin/bibliotrentobot.svg)](https://microbadger.com/images/albertoxamin/bibliotrentobot)
 
 ## What is this repository about?
 This project is a Node.js Telegraf (Telegram) bot to {}.
 
-This is the code powering @{}.
+This is the code powering @bibliotrentobot.
 
 ## Set-up
 Once you cloned the repository:
-you need to enter into project dir: `cd {}`
+you need to enter into project dir: `cd bibliotrentobot`
 and type `npm install` to install all dependencies.
 
 Create a `config.js` file in the root of this project with the following info:

@@ -15,8 +15,6 @@ bot.telegram.getMe().then((bot_informations) => {
     console.log("Server has initialized bot nickname. Nick: " + bot_informations.username);
 });
 
-const md5sum = crypto.createHash('md5');
-
 const getBiblio = function (callback) {
     request('http://spotted-biblio.herokuapp.com/raw', (err, response, body) => {
         if (err || response.statusCode != 200)
@@ -39,10 +37,9 @@ bot.on('text', ctx =>{
 
 bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
     getBiblio(res => {
-        md5sum.update(res);
         let result = {
             type: 'article',
-            id: md5sum.digest('hex'),
+            id: crypto.createHash('md5').update(res).digest('hex'),
             title: "Orari di oggi",
             description : res,
             input_message_content: {
@@ -52,6 +49,10 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
         }
         return answerInlineQuery([result])
     })
+});
+
+bot.catch((err) => {
+    console.log('Ooops', err);
 });
 
 bot.startPolling();

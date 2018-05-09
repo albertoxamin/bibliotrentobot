@@ -1,6 +1,8 @@
 # bibliotrentobot
 [![](https://images.microbadger.com/badges/version/albertoxamin/bibliotrentobot.svg)](https://microbadger.com/images/albertoxamin/bibliotrentobot)
 [![](https://images.microbadger.com/badges/image/albertoxamin/bibliotrentobot.svg)](https://microbadger.com/images/albertoxamin/bibliotrentobot)
+[![Docker Build Status](https://img.shields.io/docker/build/albertoxamin/bibliotrentobot.svg)](https://hub.docker.com/r/albertoxamin/bibliotrentobot/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/albertoxamin/bibliotrentobot.svg)](https://hub.docker.com/r/albertoxamin/bibliotrentobot/)
 
 ## What is this repository about?
 This project is a Node.js Telegraf (Telegram) bot to {}.

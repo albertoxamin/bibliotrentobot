@@ -4,6 +4,7 @@
 [![Docker Build Status](https://img.shields.io/docker/build/albertoxamin/bibliotrentobot.svg)](https://hub.docker.com/r/albertoxamin/bibliotrentobot/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/albertoxamin/bibliotrentobot.svg)](https://hub.docker.com/r/albertoxamin/bibliotrentobot/)
 [![CodeFactor](https://www.codefactor.io/repository/github/albertoxamin/bibliotrentobot/badge)](https://www.codefactor.io/repository/github/albertoxamin/bibliotrentobot)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Falbertoxamin%2Fbibliotrentobot.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Falbertoxamin%2Fbibliotrentobot?ref=badge_shield)
 
 ## What is this repository about?
 This project is a Node.js Telegraf (Telegram) bot to {}.
@@ -36,3 +37,7 @@ docker pull albertoxamin/bibliotrentobot
 docker run -it -e "TOKEN=YOUR_TELEGRAM_API_KEY" \
     --name bibliotrentobot albertoxamin/bibliotrentobot
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Falbertoxamin%2Fbibliotrentobot.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Falbertoxamin%2Fbibliotrentobot?ref=badge_large)

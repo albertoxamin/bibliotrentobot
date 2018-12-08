@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "telegraf": "^3.21.0",
-    "request": "^2.85.0",
+    "request": "^2.87.0",
     "moment": "^2.22.1"
   },
   "author": "Alberto Xamin",

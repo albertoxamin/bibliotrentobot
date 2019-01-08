@@ -8,9 +8,10 @@
     "start": "node bot.js"
   },
   "dependencies": {
-    "telegraf": "^3.21.0",
+    "moment": "^2.22.1",
     "request": "^2.87.0",
-    "moment": "^2.22.1"
+    "telegraf": "^3.21.0",
+    "telegraf-session-local": "0.0.6"
   },
   "author": "Alberto Xamin",
   "license": "MIT",

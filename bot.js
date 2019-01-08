@@ -1,4 +1,5 @@
 const Telegraf = require('telegraf')
+var { Telegram, Markup } = require('telegraf')
 const LocalSession = require('telegraf-session-local')
 const request = require('request')
 const crypto = require('crypto')
@@ -10,6 +11,7 @@ try { config = require('./config') } catch (err) {
 	}
 }
 
+const telegram = new Telegram(config.token, null)
 const bot = new Telegraf(config.token)
 
 const localSession = new LocalSession({
@@ -39,7 +41,32 @@ bot.command(['help', 'start'], ctx => {
 		'Oppure puoi offrirmi un caffè http://buymeacoff.ee/Xamin')
 })
 
-bot.command('/stats', ctx => {
+const notificationKeyboard = (nots) => {
+	return Markup.inlineKeyboard([
+		[Markup.callbackButton(`Notifiche ${(nots.status == true ? 'attive 🔔' : 'disattivate 🔕')}`, 'not_status')],
+		[5, 6, 7, 8, 9].map(h => Markup.callbackButton(`${h} ${(nots.hour == h ? '✅' : '')}`, 'not_h_' + h))
+
+	]).extra()
+}
+
+bot.command('notifiche', ctx => {
+	let nots = ctx['session'].notifiche || { status: true, hour: 7 }
+	return ctx.replyWithMarkdown('Impostazioni di notifica', notificationKeyboard(nots))
+})
+
+bot.on('callback_query', (ctx) => {
+	let nots = ctx['session'].notifiche || { status: true, hour: 7 }
+	let data = ctx.callbackQuery.data
+	if (data.indexOf('not_') != -1) {
+		if (data.indexOf('status') != -1) nots.status = !nots.status
+		else if (data.indexOf('h') != -1) nots.hour = Number(data.slice(-1))
+		ctx['session'].notifiche = nots
+		telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, 'Impostazioni di notifica', notificationKeyboard(nots))
+		ctx.answerCbQuery('Impostazioni salvate!')
+	}
+})
+
+bot.command('stats', ctx => {
 	ctx['session'].usage = ctx['session'].usage || 0
 	ctx['session'].usage++
 	totalUsage = 0, totalUsers = localSession.DB.value().sessions.length
@@ -78,13 +105,16 @@ const getBiblio = function (callback) {
 }
 
 bot.on('text', ctx => {
+	ctx.replyWithChatAction('typing')
 	ctx['session'].usage = ctx['session'].usage || 0
 	ctx['session'].usage++
 	getBiblio(res => ctx.replyWithMarkdown(res))
 })
 
 bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
-	console.log(inlineQuery)
+	let ses = localSession.DB.get('sessions').getById(`${from.id}:${from.id}`).value()
+	ses.usage = ses.usage || 0
+	ses.usage++
 	getBiblio(res => {
 		let result = {
 			type: 'article',
@@ -97,6 +127,13 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
 			}
 		}
 		return answerInlineQuery([result])
+	})
+})
+
+var notifiche = schedule.scheduleJob('0 * * * *', (date) => {
+    localSession.DB.value().sessions.forEach(session => {
+		if (session.data.notifiche.status && session.data.notifiche.hour == fireDate.getHours())
+			getBiblio(res => telegram.sendMessage(session.id, res, Object.assign({ 'parse_mode': 'Markdown' })))
 	})
 })
 

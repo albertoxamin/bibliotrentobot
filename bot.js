@@ -37,9 +37,9 @@ bot.command(['help', 'start'], ctx => {
 		'Benvenuto a bibliotrentobot.\n' +
 		'Questo bot ti permette di consultare gli orari delle biblioteche universitarie di Trento\n\n' +
 		'Scrivimi qualsiasi cosa e ti risponderò con gli orari di **oggi**\n\n' +
+		'Comandi aggiuntivi /stats /notifiche /gdpr\n' +
 		'In caso di problemi con il bot contattate @albertoxamin\n\n' +
 		'Contribuisci allo sviluppo su https://github.com/albertoxamin/bibliotrentobot\n' +
-		'Comandi aggiuntivi /stast /notifiche /gdpr\n' +
 		'Oppure puoi offrirmi un caffè http://buymeacoff.ee/Xamin')
 })
 
@@ -82,7 +82,8 @@ bot.command('stats', ctx => {
 	ctx.session.usage++
 	totalUsage = 0, totalUsers = localSession.DB.value().sessions.length
 	localSession.DB.value().sessions.forEach(session => {
-		totalUsage += session.data.usage
+		if (session.data && session.data.usage)
+			totalUsage += session.data.usage
 	})
 	ctx.replyWithMarkdown(`Il bot ha \`${totalUsers}\` utenti, e ha informato \`${totalUsage}\` volte gli orari delle biblioteche`)
 })

@@ -5,6 +5,7 @@ const request = require('request')
 const schedule = require('node-schedule')
 const crypto = require('crypto')
 const moment = require('moment')
+const strip = require('striptags')
 var config
 try { config = require('./config') } catch (err) {
 	config = {
@@ -97,15 +98,22 @@ const getBiblio = function (callback) {
 	let todayUnix = m.unix().toString() + '000'
 	if (todayUnix != lastUnix) {
 		lastUnix = lastUnix
-		request('http://spotted-biblio.herokuapp.com/raw', (err, response, body) => {
+		request('https://www.biblioteca.unitn.it/orarihp?lingua=it', (err, response, body) => {
 			if (err || response.statusCode != 200)
 				return 'Errore di connessione'
-			body = JSON.parse(body)
+			body = (strip(body, [], '%'))
+			body = body.replace(/%+/g, '+')
+			let temp = body.split('+')    
 			delete (body.lastUpdate)
 			let message = ''
-			for (let property in body) {
-				if (body.hasOwnProperty(property)) {
-					message += `*${property}* \n\t🔓 \`${body[property].open}\` 🔐 \`${body[property].close}\`\n`
+			let cont = 4
+			let t = ''
+			for (; cont < 14; cont += 2) {
+				if (temp.length >= cont) {
+					t = temp[cont + 1].split('-')
+					if (t.length >= 2) {
+						message += `*${temp[cont]}* \n\t🔓 \`${t[0]}\` 🔐 \`${t[1]}\`\n`
+					}
 				}
 			}
 			cachedMessage = message

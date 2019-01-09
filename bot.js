@@ -69,6 +69,10 @@ bot.on('callback_query', (ctx) => {
 	} else if (data.indexOf('delete') != -1) {
 		ctx.session = null
 		ctx.answerCbQuery('I tuoi dati sono stati eliminati!')
+	} else if (data.indexOf('tomorrow') != -1) {
+		getBiblio(res => 
+			telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, res, {parse_mode: 'Markdown'}),
+			moment().add(1, 'days').format("YYYY-MM-DD"))
 	}
 })
 
@@ -96,9 +100,9 @@ const getBiblio = function (callback, date) {
 	let m = moment().utcOffset(0)
 	m.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
 	let todayUnix = m.unix().toString() + '000'
-	if (todayUnix != lastUnix) {
+	if (todayUnix != lastUnix || date != undefined) {
 		lastUnix = lastUnix
-		request(`https://www.biblioteca.unitn.it/orarihp${(date) ? date : ''}?lingua=it`, (err, response, body) => {
+		request(`https://www.biblioteca.unitn.it/orarihp${(date) ? `?data=${date}&` : '?'}lingua=it`, (err, response, body) => {
 			if (err || response.statusCode != 200)
 				return callback('Non sono riuscito a connettermi a unitn.it!')
 			body = (strip(body, [], '%'))
@@ -111,6 +115,7 @@ const getBiblio = function (callback, date) {
 					let times = studyRooms[i + 1].split('-')
 					if (times.length >= 2)
 						message += `*${studyRooms[i]}* \n\t🔓 \`${times[0]}\` 🔐 \`${times[1]}\`\n`
+					else message += `*${studyRooms[i]}* \n\t🔐 \`${studyRooms[i + 1]}\`\n`
 				}
 			}
 			cachedMessage = message
@@ -125,26 +130,39 @@ bot.on('text', ctx => {
 	ctx.replyWithChatAction('typing')
 	ctx.session.usage = ctx.session.usage || 0
 	ctx.session.usage++
-	getBiblio(res => ctx.replyWithMarkdown(res))
+	getBiblio(res => ctx.replyWithMarkdown(res,
+		Markup.inlineKeyboard([Markup.callbackButton('Orario di domani', 'tomorrow')]).extra()))
 })
 
 bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
-	let ses = localSession.DB.get('sessions').getById(`${from.id}:${from.id}`).value()
+	let ses = localSession.DB.get('sessions').getById(`${inlineQuery.from.id}:${inlineQuery.from.id}`).value()
 	ses.usage = ses.usage || 0
 	ses.usage++
-	getBiblio(res => {
-		let result = {
-			type: 'article',
-			id: crypto.createHash('md5').update(res).digest('hex'),
-			title: 'Orari di oggi',
-			description: res,
-			input_message_content: {
-				message_text: res,
-				parse_mode: 'Markdown'
+	let date = moment().add(1, 'days').format("YYYY-MM-DD")
+	getBiblio(today => getBiblio(tomorrow => {
+		let result = [
+			{
+				type: 'article',
+				id: crypto.createHash('md5').update(today).digest('hex'),
+				title: 'Orari di oggi',
+				description: today,
+				input_message_content: {
+					message_text: today,
+					parse_mode: 'Markdown'
+				}
+			}, {
+				type: 'article',
+				id: crypto.createHash('md5').update('tm_' + tomorrow).digest('hex'),
+				title: 'Orari di domani',
+				description: tomorrow,
+				input_message_content: {
+					message_text: '*Orario di domani*\n\n' + tomorrow,
+					parse_mode: 'Markdown'
+				}
 			}
-		}
-		return answerInlineQuery([result])
-	})
+		]
+		return answerInlineQuery(result)
+	}, date))
 })
 
 var notifiche = schedule.scheduleJob('0 * * * *', (date) => {

@@ -92,28 +92,25 @@ bot.command('stats', ctx => {
 var lastUnix = ''
 var cachedMessage = ''
 
-const getBiblio = function (callback) {
+const getBiblio = function (callback, date) {
 	let m = moment().utcOffset(0)
 	m.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
 	let todayUnix = m.unix().toString() + '000'
 	if (todayUnix != lastUnix) {
 		lastUnix = lastUnix
-		request('https://www.biblioteca.unitn.it/orarihp?lingua=it', (err, response, body) => {
+		request(`https://www.biblioteca.unitn.it/orarihp${(date) ? date : ''}?lingua=it`, (err, response, body) => {
 			if (err || response.statusCode != 200)
-				return 'Errore di connessione'
+				return callback('Non sono riuscito a connettermi a unitn.it!')
 			body = (strip(body, [], '%'))
 			body = body.replace(/%+/g, '+')
-			let temp = body.split('+')    
+			let studyRooms = body.split('+')
 			delete (body.lastUpdate)
 			let message = ''
-			let cont = 4
-			let t = ''
-			for (; cont < 14; cont += 2) {
-				if (temp.length >= cont) {
-					t = temp[cont + 1].split('-')
-					if (t.length >= 2) {
-						message += `*${temp[cont]}* \n\t🔓 \`${t[0]}\` 🔐 \`${t[1]}\`\n`
-					}
+			for (let i = 4; i < 14; i += 2) {
+				if (studyRooms.length >= i) {
+					let times = studyRooms[i + 1].split('-')
+					if (times.length >= 2)
+						message += `*${studyRooms[i]}* \n\t🔓 \`${times[0]}\` 🔐 \`${times[1]}\`\n`
 				}
 			}
 			cachedMessage = message
@@ -141,7 +138,7 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
 			id: crypto.createHash('md5').update(res).digest('hex'),
 			title: 'Orari di oggi',
 			description: res,
-			input_message_content: {
+			input_message_contient: {
 				message_text: res,
 				parse_mode: 'Markdown'
 			}

@@ -2,6 +2,7 @@ const Telegraf = require('telegraf')
 var { Telegram, Markup } = require('telegraf')
 const LocalSession = require('telegraf-session-local')
 const request = require('request')
+const schedule = require('node-schedule')
 const crypto = require('crypto')
 const moment = require('moment')
 var config
@@ -38,6 +39,7 @@ bot.command(['help', 'start'], ctx => {
 		'Scrivimi qualsiasi cosa e ti risponderò con gli orari di **oggi**\n\n' +
 		'In caso di problemi con il bot contattate @albertoxamin\n\n' +
 		'Contribuisci allo sviluppo su https://github.com/albertoxamin/bibliotrentobot\n' +
+		'Comandi aggiuntivi /stast /notifiche /gdpr\n' +
 		'Oppure puoi offrirmi un caffè http://buymeacoff.ee/Xamin')
 })
 
@@ -50,25 +52,34 @@ const notificationKeyboard = (nots) => {
 }
 
 bot.command('notifiche', ctx => {
-	let nots = ctx['session'].notifiche || { status: true, hour: 7 }
+	let nots = ctx.session.notifiche || { status: true, hour: 7 }
 	return ctx.replyWithMarkdown('Impostazioni di notifica', notificationKeyboard(nots))
 })
 
 bot.on('callback_query', (ctx) => {
-	let nots = ctx['session'].notifiche || { status: true, hour: 7 }
+	let nots = ctx.session.notifiche || { status: true, hour: 7 }
 	let data = ctx.callbackQuery.data
 	if (data.indexOf('not_') != -1) {
 		if (data.indexOf('status') != -1) nots.status = !nots.status
 		else if (data.indexOf('h') != -1) nots.hour = Number(data.slice(-1))
-		ctx['session'].notifiche = nots
+		ctx.session.notifiche = nots
 		telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, 'Impostazioni di notifica', notificationKeyboard(nots))
 		ctx.answerCbQuery('Impostazioni salvate!')
+	} else if (data.indexOf('delete') != -1) {
+		ctx.session = null
+		ctx.answerCbQuery('I tuoi dati sono stati eliminati!')
 	}
 })
 
+bot.command('gdpr', ctx => {
+	ctx.replyWithChatAction('typing')
+	ctx.reply(`Ecco i tuoi dati:\n${JSON.stringify(ctx.session, null, 2)}`,
+		Markup.inlineKeyboard([Markup.callbackButton('Elimina i miei dati 🗑', 'delete')]).extra())
+})
+
 bot.command('stats', ctx => {
-	ctx['session'].usage = ctx['session'].usage || 0
-	ctx['session'].usage++
+	ctx.session.usage = ctx.session.usage || 0
+	ctx.session.usage++
 	totalUsage = 0, totalUsers = localSession.DB.value().sessions.length
 	localSession.DB.value().sessions.forEach(session => {
 		totalUsage += session.data.usage
@@ -106,8 +117,8 @@ const getBiblio = function (callback) {
 
 bot.on('text', ctx => {
 	ctx.replyWithChatAction('typing')
-	ctx['session'].usage = ctx['session'].usage || 0
-	ctx['session'].usage++
+	ctx.session.usage = ctx.session.usage || 0
+	ctx.session.usage++
 	getBiblio(res => ctx.replyWithMarkdown(res))
 })
 
@@ -131,9 +142,12 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
 })
 
 var notifiche = schedule.scheduleJob('0 * * * *', (date) => {
-    localSession.DB.value().sessions.forEach(session => {
-		if (session.data.notifiche.status && session.data.notifiche.hour == fireDate.getHours())
+	localSession.DB.value().sessions.forEach(session => {
+		if (session.data.notifiche && session.data.notifiche.status && session.data.notifiche.hour == fireDate.getHours()) {
+			session.data.usage++
+			localSession.DB.updateById(session.id, session.data)
 			getBiblio(res => telegram.sendMessage(session.id, res, Object.assign({ 'parse_mode': 'Markdown' })))
+		}
 	})
 })
 

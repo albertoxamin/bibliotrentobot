@@ -34,9 +34,12 @@ For easier deployment you can also use the docker image
 
 ```shell
 docker pull albertoxamin/bibliotrentobot
-docker run -it -e "TOKEN=YOUR_TELEGRAM_API_KEY" \
+docker run -it -e "token=YOUR_TELEGRAM_API_KEY" \
+	-v storage_path:/usr/src/app/storage \
     --name bibliotrentobot albertoxamin/bibliotrentobot
 ```
+
+where `storage_path` is something like this `~/biblio` and inside that folder add a `db.json`
 
 
 ## License

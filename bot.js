@@ -109,7 +109,7 @@ const getBiblio = function (callback, date) {
 			body = body.replace(/%+/g, '+')
 			let studyRooms = body.split('+')
 			delete (body.lastUpdate)
-			let message = ''
+			let message = `${studyRooms[2]}\n`
 			for (let i = 4; i < 14; i += 2) {
 				if (studyRooms.length >= i) {
 					let times = studyRooms[i + 1].split('-')
@@ -156,7 +156,7 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
 				title: 'Orari di domani',
 				description: tomorrow,
 				input_message_content: {
-					message_text: '*Orario di domani*\n\n' + tomorrow,
+					message_text: tomorrow,
 					parse_mode: 'Markdown'
 				}
 			}

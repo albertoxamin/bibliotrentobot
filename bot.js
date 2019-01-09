@@ -138,7 +138,7 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
 			id: crypto.createHash('md5').update(res).digest('hex'),
 			title: 'Orari di oggi',
 			description: res,
-			input_message_contient: {
+			input_message_content: {
 				message_text: res,
 				parse_mode: 'Markdown'
 			}

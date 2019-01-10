@@ -70,8 +70,8 @@ bot.on('callback_query', (ctx) => {
 		ctx.session = null
 		ctx.answerCbQuery('I tuoi dati sono stati eliminati!')
 	} else if (data.indexOf('tomorrow') != -1) {
-		getBiblio(res => 
-			telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, res, {parse_mode: 'Markdown'}),
+		getBiblio(res =>
+			telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, res, { parse_mode: 'Markdown' }),
 			moment().add(1, 'days').format("YYYY-MM-DD"))
 	}
 })
@@ -91,6 +91,25 @@ bot.command('stats', ctx => {
 			totalUsage += session.data.usage
 	})
 	ctx.replyWithMarkdown(`Il bot ha \`${totalUsers}\` utenti, e ha informato \`${totalUsage}\` volte gli orari delle biblioteche`)
+})
+
+bot.command('notsay', ctx => {
+	if (ctx.message.chat.username == 'albertoxamin') {
+		var msg = ctx.message.text.toString()
+		localSession.DB.value().sessions.forEach(session => {
+			if (session.data.notifiche && session.data.notifiche.status)
+				telegram.sendMessage(session.id, msg.replace('/notsay', ''), Object.assign({ 'parse_mode': 'Markdown' }))
+		})
+	}
+})
+
+bot.command('say', ctx => {
+	if (ctx.message.chat.username == 'albertoxamin') {
+		var msg = ctx.message.text.toString()
+		localSession.DB.value().sessions.forEach(session => {
+			telegram.sendMessage(session.id, msg.replace('/say', ''), Object.assign({ 'parse_mode': 'Markdown' }))
+		})
+	}
 })
 
 var lastUnix = ''
@@ -167,7 +186,7 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
 
 var notifiche = schedule.scheduleJob('0 * * * *', (date) => {
 	localSession.DB.value().sessions.forEach(session => {
-		if (session.data.notifiche && session.data.notifiche.status && session.data.notifiche.hour == fireDate.getHours()) {
+		if (session.data.notifiche && session.data.notifiche.status && session.data.notifiche.hour == date.getHours()) {
 			session.data.usage++
 			localSession.DB.updateById(session.id, session.data)
 			getBiblio(res => telegram.sendMessage(session.id, res, Object.assign({ 'parse_mode': 'Markdown' })))

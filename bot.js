@@ -69,10 +69,18 @@ bot.on('callback_query', (ctx) => {
 	} else if (data.indexOf('delete') != -1) {
 		ctx.session = null
 		ctx.answerCbQuery('I tuoi dati sono stati eliminati!')
-	} else if (data.indexOf('tomorrow') != -1) {
-		getBiblio(res =>
-			telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, res, { parse_mode: 'Markdown' }),
-			moment().add(1, 'days').format("YYYY-MM-DD"))
+	} else if (data.indexOf('date_') != -1) {
+		let buttons = [1, 2, 3, 4, 5].filter(x => Number(data.slice(-1) != x)).map(x =>
+			Markup.callbackButton(moment().add(x, 'days').format("DD/MM"), 'date_' + x))
+		if (data != 'date_0')
+			buttons.unshift(Markup.callbackButton(moment().format("DD/MM"), 'date_0'))
+		let kb = Markup.inlineKeyboard(buttons).extra()
+		kb.parse_mode = 'Markdown'
+		getBiblio(res => {
+				telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, res, kb)
+				ctx.answerCbQuery('Orario aggiornato!')
+			},
+			moment().add(Number(data.slice(-1)), 'days').format("YYYY-MM-DD"))
 	}
 })
 
@@ -150,7 +158,9 @@ bot.on('text', ctx => {
 	ctx.session.usage = ctx.session.usage || 0
 	ctx.session.usage++
 	getBiblio(res => ctx.replyWithMarkdown(res,
-		Markup.inlineKeyboard([Markup.callbackButton('Orario di domani', 'tomorrow')]).extra()))
+		Markup.inlineKeyboard([
+			[1, 2, 3, 4, 5].map(x => Markup.callbackButton(moment().add(x, 'days').format("DD/MM"), 'date_' + x))
+		]).extra()))
 })
 
 bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {

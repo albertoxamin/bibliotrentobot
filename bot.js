@@ -6,6 +6,7 @@ const schedule = require('node-schedule')
 const crypto = require('crypto')
 const moment = require('moment')
 const strip = require('striptags')
+
 var config
 try { config = require('./config') } catch (err) {
 	config = {
@@ -38,7 +39,7 @@ bot.command(['help', 'start'], ctx => {
 		'Benvenuto a bibliotrentobot.\n' +
 		'Questo bot ti permette di consultare gli orari delle biblioteche universitarie di Trento\n\n' +
 		'Scrivimi qualsiasi cosa e ti risponderò con gli orari di **oggi**\n\n' +
-		'Comandi aggiuntivi /stats /notifiche /gdpr\n' +
+		'Comandi aggiuntivi /help /stats /notifiche /prestiti /gdpr\n' +
 		'In caso di problemi con il bot contattate @albertoxamin\n\n' +
 		'Contribuisci allo sviluppo su https://github.com/albertoxamin/bibliotrentobot\n')
 })

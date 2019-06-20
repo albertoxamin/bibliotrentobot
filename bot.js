@@ -40,8 +40,7 @@ bot.command(['help', 'start'], ctx => {
 		'Scrivimi qualsiasi cosa e ti risponderò con gli orari di **oggi**\n\n' +
 		'Comandi aggiuntivi /stats /notifiche /gdpr\n' +
 		'In caso di problemi con il bot contattate @albertoxamin\n\n' +
-		'Contribuisci allo sviluppo su https://github.com/albertoxamin/bibliotrentobot\n' +
-		'Oppure puoi offrirmi un caffè http://buymeacoff.ee/Xamin')
+		'Contribuisci allo sviluppo su https://github.com/albertoxamin/bibliotrentobot\n')
 })
 
 const notificationKeyboard = (nots) => {
@@ -77,9 +76,9 @@ bot.on('callback_query', (ctx) => {
 		let kb = Markup.inlineKeyboard(buttons).extra()
 		kb.parse_mode = 'Markdown'
 		getBiblio(res => {
-				telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, res, kb)
-				ctx.answerCbQuery('Orario aggiornato!')
-			},
+			telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, res, kb)
+			ctx.answerCbQuery('Orario aggiornato!')
+		},
 			moment().add(Number(data.slice(-1)), 'days').format("YYYY-MM-DD"))
 	}
 })
@@ -101,9 +100,36 @@ bot.command('stats', ctx => {
 	ctx.replyWithMarkdown(`Il bot ha \`${totalUsers}\` utenti, e ha informato \`${totalUsage}\` volte gli orari delle biblioteche`)
 })
 
+bot.command('prestiti', ctx => {
+	ctx.replyWithChatAction('typing')
+	if (ctx.session.biblio && ctx.session.biblio.username && ctx.session.biblio.password) {
+		request(`https://cbt-biblio-api.albertoxamin.now.sh/myloans?username=${ctx.session.biblio.username}&password=${ctx.session.biblio.password}`,
+			(err, res, body) => {
+				if (err || res.statusCode != 200)
+					return callback('Si è verificato un errore, le credenziali sono corrette?')
+				ctx.reply(body)
+			})
+	} else {
+		ctx.replyWithMarkdown(`⚠️ Non hai fatto il login al sistema bibliotecario!\n
+		Effettua il login inviandomi \`/login NOME_COGNOME TUA_PASSWORD_BIBLIOTECA\`\n\n
+		Se non conosci le tue credenziali segui la procedura sul sito http://www.cbt.biblioteche.provincia.tn.it/oseegenius/workspace`)
+	}
+})
+
+bot.command('login', ctx => {
+	let credentials = ctx.message.text.toString().split(' ')
+	if (credentials.length !== 3)
+		return ctx.reply('🤔 Qualcosa non quadra, controlla di aver messo uno spazio tra il comando e i valori')
+	ctx.session.biblio = {
+		username: credentials[1],
+		password: credentials[2]
+	}
+	ctx.reply('Perfetto ✅ ora puoi utilizzare il comando /prestiti')
+})
+
 bot.command('notsay', ctx => {
 	if (ctx.message.chat.username == 'albertoxamin') {
-		var msg = ctx.message.text.toString()
+		let msg = ctx.message.text.toString()
 		localSession.DB.value().sessions.forEach(session => {
 			if (session.data.notifiche && session.data.notifiche.status)
 				telegram.sendMessage(session.id, msg.replace('/notsay', ''), Object.assign({ 'parse_mode': 'Markdown' }))
@@ -113,7 +139,7 @@ bot.command('notsay', ctx => {
 
 bot.command('say', ctx => {
 	if (ctx.message.chat.username == 'albertoxamin') {
-		var msg = ctx.message.text.toString()
+		let msg = ctx.message.text.toString()
 		localSession.DB.value().sessions.forEach(session => {
 			telegram.sendMessage(session.id, msg.replace('/say', ''), Object.assign({ 'parse_mode': 'Markdown' }))
 		})

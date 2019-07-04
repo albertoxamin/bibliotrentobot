@@ -5,7 +5,9 @@
   "main": "bot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node bot.js"
+    "start": "node bot.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "moment": "^2.22.1",
@@ -13,11 +15,13 @@
     "request": "^2.87.0",
     "telegraf": "^3.21.0",
     "telegraf-session-local": "0.0.6",
-    "striptags": "^3.1.1"
+    "striptags": "^3.1.1",
+    "snyk": "^1.189.0"
   },
   "author": "Alberto Xamin",
   "license": "MIT",
   "repository": {
     "url": "https://github.com/albertoxamin/bibliotrentobot.git"
-  }
+  },
+  "snyk": true
 }

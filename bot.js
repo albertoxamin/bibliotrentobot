@@ -1,5 +1,5 @@
 const Telegraf = require('telegraf')
-var { Telegram, Markup } = require('telegraf')
+const { Telegram, Markup } = require('telegraf')
 const LocalSession = require('telegraf-session-local')
 const request = require('request')
 const schedule = require('node-schedule')
@@ -47,8 +47,9 @@ bot.command(['help', 'start'], ctx => {
 const notificationKeyboard = (nots) => {
 	return Markup.inlineKeyboard([
 		[Markup.callbackButton(`Notifiche ${(nots.status == true ? 'attive 🔔' : 'disattivate 🔕')}`, 'not_status')],
-		[5, 6, 7, 8, 9].map(h => Markup.callbackButton(`${h} ${(nots.hour == h ? '✅' : '')}`, 'not_h_' + h))
-
+		[5, 6, 7, 8, 9].map(h => Markup.callbackButton(`${h} ${(nots.hour == h ? '✅' : '')}`, 'not_h_' + h)),
+		[Markup.callbackButton(`Promemoria prestiti ${(nots.books == true ? '🔔' : '🔕')}`, 'not_books')],
+		[Markup.callbackButton(`Sopprimi notifiche orari biblioteche ${(nots.ignore_open == true ? '✅' : '')}`, 'not_ignore_open')]
 	]).extra()
 }
 
@@ -63,6 +64,8 @@ bot.on('callback_query', (ctx) => {
 	if (data.indexOf('not_') != -1) {
 		if (data.indexOf('status') != -1) nots.status = !nots.status
 		else if (data.indexOf('h') != -1) nots.hour = Number(data.slice(-1))
+		else if (data.indexOf('books') != -1) nots.books = !nots.books
+		else if (data.indexOf('ignore_open') != -1) nots.ignore_open = !nots.ignore_open
 		ctx.session.notifiche = nots
 		telegram.editMessageText(ctx.callbackQuery.message.chat.id, ctx.callbackQuery.message.message_id, null, 'Impostazioni di notifica', notificationKeyboard(nots))
 		ctx.answerCbQuery('Impostazioni salvate!')
@@ -226,7 +229,27 @@ var notifiche = schedule.scheduleJob('0 * * * *', (date) => {
 		if (session.data.notifiche && session.data.notifiche.status && session.data.notifiche.hour == date.getHours()) {
 			session.data.usage++
 			localSession.DB.updateById(session.id, session.data)
-			getBiblio(res => telegram.sendMessage(session.id, res, Object.assign({ 'parse_mode': 'Markdown' })))
+			if (!session.data.notifiche.ignore_open)
+				getBiblio(res => telegram.sendMessage(session.id, res, Object.assign({ 'parse_mode': 'Markdown' })))
+			if (session.data.notifiche.books) 
+				if (session.data.biblio && session.data.biblio.username && session.data.biblio.password) {
+					request(`https://cbt-biblio-api.albertoxamin.now.sh/myloans?username=${session.data.biblio.username}&password=${session.data.biblio.password}`,
+						(err, res, body) => {
+							if (err || res.statusCode != 200)
+								return callback('Si è verificato un errore, le credenziali cbt sono corrette?')
+							let matches = body.match(/[0-9]+\/[0-9]+\/[0-9]{4}/gm)
+							for (let i = 1; i < matches.length; i += 2) {
+								if (matches[i] == moment().format('DD/MM/YYYY'))
+									return telegram.sendMessage(session.id, `🔔 Hai dei prestiti che scadono oggi!\n
+									Controlla i tuoi prestiti con /prestiti`, Object.assign({ 'parse_mode': 'Markdown' }))
+							}
+						})
+				} else {
+					telegram.sendMessage(session.id, `⚠️ Non hai fatto il login al sistema bibliotecario!\n
+					Effettua il login inviandomi \`/login NOME_COGNOME TUA_PASSWORD_BIBLIOTECA\`\n\n
+					Se non conosci le tue credenziali segui la procedura sul sito http://www.cbt.biblioteche.provincia.tn.it/oseegenius/workspace`, Object.assign({ 'parse_mode': 'Markdown' }))
+				}
+			
 		}
 	})
 })

@@ -5,7 +5,9 @@
   "main": "bot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node bot.js"
+    "start": "node bot.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "moment": "^2.24.0",
@@ -13,7 +15,8 @@
     "request": "^2.88.0",
     "striptags": "^3.1.1",
     "telegraf": "^3.33.3",
-    "telegraf-session-local": "^1.0.2"
+    "telegraf-session-local": "^1.0.2",
+    "snyk": "^1.316.1"
   },
   "author": "Alberto Xamin",
   "license": "MIT",

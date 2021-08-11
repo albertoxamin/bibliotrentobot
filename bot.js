@@ -158,7 +158,7 @@ const getBiblio = function (callback, date) {
 	m.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
 	let todayUnix = m.unix().toString() + '000'
 	if (todayUnix != lastUnix || date != undefined) {
-		lastUnix = lastUnix
+		lastUnix = todayUnix
 		request(`https://www.biblioteca.unitn.it/orarihp${(date) ? `?data=${date}&` : '?'}lingua=it`, (err, response, body) => {
 			if (err || response.statusCode != 200)
 				return callback('Non sono riuscito a connettermi a unitn.it!')
